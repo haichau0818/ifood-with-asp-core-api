@@ -1,4 +1,6 @@
+using ifood_core_api_7.Interfaces;
 using ifood_core_api_7.Models;
+using ifood_core_api_7.Repos;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -14,7 +16,7 @@ builder.Services.AddDbContext<MyDBContext>(
     options => options.UseSqlServer(
         builder.Configuration.GetConnectionString("MyConnection")
         ));
-
+builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
