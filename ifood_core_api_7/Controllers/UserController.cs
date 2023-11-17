@@ -1,4 +1,5 @@
-﻿using ifood_core_api_7.Interfaces;
+﻿using BCrypt.Net;
+using ifood_core_api_7.Interfaces;
 using ifood_core_api_7.Models;
 using ifood_core_api_7.Repos;
 using Microsoft.AspNetCore.Http;
@@ -30,12 +31,31 @@ namespace ifood_core_api_7.Controllers
             return Ok(data);
         }
 
-        [HttpPost("Create")]
-        public async Task<IActionResult> Create(User user)
+        [HttpPost("register")]
+        public async Task<IActionResult> Register(User user)
         {
+            // Hash Password
+            string passwordHash = BCrypt.Net.BCrypt.HashPassword(user.Password);
+            user.Password = passwordHash;
+
             var data = await _unitOfWork.UserRepository.Insert(user);
             await _unitOfWork.CompleteAsync();
             return Ok(data);
+        }
+
+
+        [HttpPost("login")]
+        public async Task<IActionResult> Login(User _user)
+        {
+            List<User> listUser = await _unitOfWork.UserRepository.GetAllAsync();
+       
+            User validateUser = listUser.FirstOrDefault(p => p.Email == _user.Email && BCrypt.Net.BCrypt.Verify(_user.Password, p.Password));
+            if (validateUser==null)
+            {
+                return BadRequest("Wrong email or password.");
+            }
+            return Ok(validateUser);
+
         }
 
         [HttpPut("Edit")]

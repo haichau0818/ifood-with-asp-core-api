@@ -10,5 +10,6 @@ namespace ifood_core_api_7.Models
         }
 
         public virtual DbSet<User> Users { get; set; }
+        public virtual DbSet<Product> Products { get; set; }
     }
 }

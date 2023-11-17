@@ -1,9 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace ifood_core_api_7.Models
 {
+    [Table("Product")]
     public class Product
     {
+        [Required]
+
         public Guid Id { get; set; }
         [Required]
         [StringLength(100)]
@@ -12,7 +16,7 @@ namespace ifood_core_api_7.Models
 
         public string Description { get; set; }
         [Required]
-        public decimal Price { get; set; }= 0;
+        public double Price { get; set; }= 0;
         [StringLength(100)]
 
         public string Producer { get; set;}
