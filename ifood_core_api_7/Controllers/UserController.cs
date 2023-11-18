@@ -4,6 +4,10 @@ using ifood_core_api_7.Models;
 using ifood_core_api_7.Repos;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using System.Text;
 
 namespace ifood_core_api_7.Controllers
 {
@@ -12,10 +16,11 @@ namespace ifood_core_api_7.Controllers
     public class UserController : ControllerBase
     {
         private readonly IUnitOfWork _unitOfWork;
-
-        public UserController(IUnitOfWork unitOfWork)
+        private readonly IConfiguration _configuration;
+        public UserController(IUnitOfWork unitOfWork,IConfiguration configuration)
         {
             this._unitOfWork = unitOfWork;
+            this._configuration = configuration;
         }
 
         [HttpGet]
@@ -54,11 +59,13 @@ namespace ifood_core_api_7.Controllers
             {
                 return BadRequest("Wrong email or password.");
             }
-            return Ok(validateUser);
+
+            string token = CreateToken(validateUser);
+            return Ok(token);
 
         }
 
-        [HttpPut("Edit")]
+        [HttpPut("edit")]
         public async Task<IActionResult> Edit(User user)
         {
             var data = await _unitOfWork.UserRepository.Update(user);
@@ -66,12 +73,42 @@ namespace ifood_core_api_7.Controllers
             return Ok(data);
         }
 
-        [HttpDelete("Delete")]
+        [HttpDelete("delete")]
         public async Task<IActionResult> Delete(User user)
         {
             var data = await _unitOfWork.UserRepository.Delete(user.Id);
             await _unitOfWork.CompleteAsync();
             return Ok(data);
+        }
+
+
+        private string CreateToken(User user)
+        {
+
+            List<Claim> claims = new List<Claim>{ 
+            
+                new Claim(ClaimTypes.Email, user.Email),
+                new Claim(ClaimTypes.Role,"Admin"),
+                new Claim(ClaimTypes.Role,"User"),
+
+            };
+
+            var key = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(
+                    _configuration.GetSection("AppSettings:Token").Value!
+                    ));
+
+            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+
+            var token = new JwtSecurityToken(
+                    claims: claims,
+                    expires: DateTime.Now.AddDays(1),
+                    signingCredentials: creds
+                );
+            var jwt = new JwtSecurityTokenHandler().WriteToken(token);
+
+            return jwt;
+
         }
     }
 }

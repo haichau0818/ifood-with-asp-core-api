@@ -1,6 +1,7 @@
 using ifood_core_api_7.Interfaces;
 using ifood_core_api_7.Models;
 using ifood_core_api_7.Repos;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -12,11 +13,20 @@ builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
+
+// Add db
 builder.Services.AddDbContext<MyDBContext>(
     options => options.UseSqlServer(
         builder.Configuration.GetConnectionString("MyConnection")
         ));
 builder.Services.AddTransient<IUnitOfWork, UnitOfWork>();
+
+
+// Add Authentication
+
+builder.Services.AddAuthentication().AddJwtBearer();
+
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
